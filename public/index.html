@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>vital.ai</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0f11; --surface: #16181c; --surface2: #1e2026; --surface3: #25282f;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+  --text: #e8e9eb; --text2: #8b8f98; --text3: #52565e;
+  --accent: #4fffb0; --accent-dim: rgba(79,255,176,0.12);
+  --red: #ff6b6b; --red-dim: rgba(255,107,107,0.12);
+  --amber: #ffb347; --amber-dim: rgba(255,179,71,0.1);
+  --blue: #64b5f6; --blue-dim: rgba(100,181,246,0.1);
+  --mono: 'DM Mono', monospace; --serif: 'Instrument Serif', serif;
+  --header-h: 56px; --tab-h: 44px;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Header ── */
+.header { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.logo { font-family: var(--serif); font-size: 20px; font-style: italic; }
+.logo span { color: var(--accent); font-style: normal; }
+.header-right { display: flex; align-items: center; gap: 8px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+.icon-btn { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--text2); cursor: pointer; font-size: 16px; padding: 6px 10px; line-height: 1; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+.icon-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ── Bottom nav tabs ── */
+.bottom-nav { height: var(--tab-h); display: flex; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; order: 99; }
+.nav-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 9px; color: var(--text3); border: none; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 0.15s; padding-bottom: env(safe-area-inset-bottom); }
+.nav-tab.active { color: var(--accent); }
+.nav-tab svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Pages ── */
+.pages { flex: 1; overflow: hidden; position: relative; }
+.page { position: absolute; inset: 0; overflow-y: auto; display: none; -webkit-overflow-scrolling: touch; }
+.page.active { display: block; }
+.page::-webkit-scrollbar { display: none; }
+
+/* ── Shared ── */
+.section { padding: 16px; }
+.section + .section { padding-top: 0; }
+.section-title { font-size: 10px; letter-spacing: 0.1em; color: var(--text3); text-transform: uppercase; margin-bottom: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+.card-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.card-row:last-child { border-bottom: none; }
+.row-label { color: var(--text2); font-size: 13px; }
+.row-value { display: flex; align-items: baseline; gap: 4px; }
+.row-input { background: transparent; border: none; color: var(--text); font-family: var(--mono); font-size: 15px; font-weight: 500; width: 80px; text-align: right; outline: none; -webkit-appearance: none; }
+.row-input:focus { color: var(--accent); }
+.row-unit { font-size: 11px; color: var(--text3); }
+.row-select { background: transparent; border: none; color: var(--text); font-family: var(--mono); font-size: 13px; outline: none; text-align: right; -webkit-appearance: none; }
+
+/* ── Day navigator ── */
+.day-nav { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.day-info { flex: 1; }
+.day-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.day-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.day-dots { display: flex; gap: 5px; margin-top: 6px; }
+.day-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--surface3); border: 1px solid var(--border2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.day-dot.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 5px var(--accent); }
+.day-dot.filled { border-color: var(--text3); }
+.day-arrows { display: flex; gap: 8px; }
+.day-arrow { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--text2); cursor: pointer; font-size: 18px; padding: 6px 12px; line-height: 1; -webkit-tap-highlight-color: transparent; }
+.day-arrow:active:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.day-arrow:disabled { opacity: 0.25; }
+
+/* ── Analyze button ── */
+.analyze-btn { width: 100%; padding: 14px; font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 0.06em; border-radius: 12px; border: none; background: var(--accent); color: #0a0b0d; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: all 0.15s; margin-top: 4px; }
+.analyze-btn:active { background: #3de89e; transform: scale(0.98); }
+.analyze-btn:disabled { opacity: 0.4; }
+
+/* ── Response ── */
+.response-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; min-height: 100px; }
+.response-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80px; color: var(--text3); gap: 6px; font-size: 12px; }
+.response-text { font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
+.response-text .section-head { color: var(--accent); font-weight: 500; }
+.response-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text3); margin-bottom: 10px; }
+.thinking { display: flex; align-items: center; gap: 8px; color: var(--text3); font-size: 12px; justify-content: center; padding: 20px 0; }
+.thinking-dots span { display: inline-block; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; animation: blink 1.2s infinite; }
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0}40%{opacity:1} }
+
+/* ── Prompt page ── */
+.prompt-textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 12px; line-height: 1.7; padding: 12px; min-height: 200px; outline: none; resize: vertical; -webkit-appearance: none; }
+.prompt-textarea:focus { border-color: var(--accent); }
+.prompt-note { font-size: 11px; color: var(--text3); margin-top: 8px; line-height: 1.5; }
+
+/* ── Trends page ── */
+.trends-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.trend-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.trend-name { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.trend-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.trend-val { font-size: 18px; font-weight: 500; color: var(--text); }
+.trend-unit { font-size: 10px; color: var(--text3); margin-left: 2px; }
+.trend-delta { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+.trend-delta.up { background: var(--accent-dim); color: var(--accent); }
+.trend-delta.down { background: var(--red-dim); color: var(--red); }
+.trend-delta.flat { background: var(--surface2); color: var(--text3); }
+.sparkline { width: 100%; height: 40px; }
+.day-labels { display: flex; justify-content: space-between; margin-top: 2px; }
+.day-lbl { font-size: 9px; color: var(--text3); }
+
+/* ── Settings modal ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding-bottom: env(safe-area-inset-bottom); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 12px auto 0; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; }
+.modal-title { font-size: 14px; font-weight: 500; }
+.modal-close { background: var(--surface2); border: none; color: var(--text2); cursor: pointer; font-size: 16px; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.modal-body { padding: 0 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.setting-row { display: flex; flex-direction: column; gap: 6px; }
+.setting-label { font-size: 12px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
+.setting-sublabel { font-size: 10px; color: var(--text3); }
+.setting-input, .setting-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 10px 14px; outline: none; width: 100%; -webkit-appearance: none; }
+.setting-input:focus, .setting-select:focus { border-color: var(--accent); }
+.setting-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.range-wrap { display: flex; align-items: center; gap: 10px; }
+.range-wrap input[type=range] { flex: 1; accent-color: var(--accent); height: 4px; cursor: pointer; }
+.range-val { font-size: 13px; font-weight: 500; color: var(--accent); min-width: 30px; text-align: right; }
+.modal-footer { padding: 12px 16px 8px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+.connected-badge { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; flex: 1; }
+.connected-badge.ok { color: var(--accent); }
+.connected-badge.ok::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; }
+.btn { font-family: var(--mono); font-size: 12px; padding: 9px 16px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border2); background: transparent; color: var(--text2); -webkit-tap-highlight-color: transparent; }
+.btn:active { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); color: #0a0b0d; border-color: var(--accent); font-weight: 500; }
+.btn-primary:active { background: #3de89e; }
+
+/* ── Shortcut URL card ── */
+.url-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.url-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+.url-text { font-size: 11px; color: var(--accent); word-break: break-all; line-height: 1.6; background: var(--surface2); border-radius: 8px; padding: 10px; }
+.copy-btn { width: 100%; margin-top: 10px; padding: 10px; font-family: var(--mono); font-size: 12px; border-radius: 8px; border: 1px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.copy-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: calc(var(--tab-h) + 12px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; padding: 8px 18px; font-size: 12px; color: var(--text); opacity: 0; transition: all 0.2s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { border-color: var(--red); color: var(--red); }
+
+/* ── Desktop layout ── */
+@media (min-width: 768px) {
+  body { overflow: auto; }
+  .bottom-nav { height: 52px; border-top: 1px solid var(--border); border-bottom: none; }
+  .nav-tab { font-size: 11px; gap: 3px; }
+  .pages { overflow: auto; position: static; flex: 1; max-width: 680px; margin: 0 auto; width: 100%; }
+  .page { position: static; display: none; overflow: visible; }
+  .page.active { display: block; }
+  .modal-overlay { align-items: center; }
+  .modal { border-radius: 16px; max-width: 480px; width: 90%; margin: auto; }
+  .modal-handle { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="logo">vital<span>.</span>ai</div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+  </div>
+</div>
+
+<div class="pages" id="pages">
+
+  <!-- ── PAGE: Metrics ── -->
+  <div class="page active" id="page-metrics">
+    <div class="section">
+      <div class="section-title">daily metrics</div>
+
+      <div class="day-nav">
+        <div class="day-info">
+          <div class="day-name" id="dayNavLabel">Day 7 — Today</div>
+          <div class="day-sub" id="dayNavSub">editing most recent entry</div>
+          <div class="day-dots" id="dayDots"></div>
+        </div>
+        <div class="day-arrows">
+          <button class="day-arrow" id="prevDay" onclick="goDay(-1)">‹</button>
+          <button class="day-arrow" id="nextDay" onclick="goDay(1)">›</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="padding:10px 14px 0;margin:0;">cardio &amp; fitness</div>
+        <div class="card-row"><span class="row-label">VO2 Max</span><div class="row-value"><input class="row-input" id="f_vo2_max" type="number" step="0.1"/><span class="row-unit">mL/kg/min</span></div></div>
+        <div class="card-row"><span class="row-label">Steps</span><div class="row-value"><input class="row-input" id="f_steps" type="number"/><span class="row-unit">steps</span></div></div>
+        <div class="card-row"><span class="row-label">Active calories</span><div class="row-value"><input class="row-input" id="f_active_calories" type="number"/><span class="row-unit">kcal</span></div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="padding:10px 14px 0;margin:0;">heart &amp; respiratory</div>
+        <div class="card-row"><span class="row-label">Resting HR</span><div class="row-value"><input class="row-input" id="f_resting_hr" type="number"/><span class="row-unit">bpm</span></div></div>
+        <div class="card-row"><span class="row-label">Average HR</span><div class="row-value"><input class="row-input" id="f_avg_hr" type="number"/><span class="row-unit">bpm</span></div></div>
+        <div class="card-row"><span class="row-label">HRV</span><div class="row-value"><input class="row-input" id="f_hrv" type="number"/><span class="row-unit">ms</span></div></div>
+        <div class="card-row"><span class="row-label">Blood oxygen</span><div class="row-value"><input class="row-input" id="f_blood_oxygen" type="number" step="0.1"/><span class="row-unit">%</span></div></div>
+        <div class="card-row"><span class="row-label">Respiratory rate</span><div class="row-value"><input class="row-input" id="f_respiratory_rate" type="number" step="0.1"/><span class="row-unit">br/min</span></div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="padding:10px 14px 0;margin:0;">last workout</div>
+        <div class="card-row"><span class="row-label">Type</span>
+          <select class="row-select" id="f_workout_type">
+            <option>Running</option><option>Cycling</option><option>Swimming</option>
+            <option>Walking</option><option>HIIT</option><option>Strength</option>
+            <option>Yoga</option><option>Rest</option><option>Other</option>
+          </select>
+        </div>
+        <div class="card-row"><span class="row-label">Duration</span><div class="row-value"><input class="row-input" id="f_workout_duration" type="number"/><span class="row-unit">min</span></div></div>
+        <div class="card-row"><span class="row-label">Calories</span><div class="row-value"><input class="row-input" id="f_workout_calories" type="number"/><span class="row-unit">kcal</span></div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="padding:10px 14px 0;margin:0;">recovery</div>
+        <div class="card-row"><span class="row-label">Sleep</span><div class="row-value"><input class="row-input" id="f_sleep_hours" type="number" step="0.1"/><span class="row-unit">hrs</span></div></div>
+      </div>
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">→ analyze 7 days with gemini</button>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Analysis ── -->
+  <div class="page" id="page-analysis">
+    <div class="section">
+      <div class="section-title">gemini analysis</div>
+      <div id="responseBadge"></div>
+      <div class="response-card" id="responseCard">
+        <div class="response-empty" id="responseEmpty">
+          <div style="font-size:24px;opacity:0.2;">◎</div>
+          <div>go to metrics and hit analyze</div>
+        </div>
+        <div class="response-text" id="responseText" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Trends ── -->
+  <div class="page" id="page-trends">
+    <div class="section">
+      <div class="section-title">7-day trends</div>
+      <div class="trends-grid" id="trendsGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Prompt ── -->
+  <div class="page" id="page-prompt">
+    <div class="section">
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+        prompt editor
+        <button class="btn" onclick="resetPrompt()" style="font-size:10px;padding:4px 10px;">reset</button>
+      </div>
+      <textarea class="prompt-textarea" id="promptEditor" spellcheck="false"></textarea>
+      <div class="prompt-note">Edit the prompt freely. Tap Reset to regenerate from current metric values.</div>
+    </div>
+    <div class="section" style="padding-top:0;">
+      <div class="section-title">ios shortcut url</div>
+      <div class="url-card">
+        <div class="url-label">Paste this URL into your Shortcut's "Get Contents of URL" action. Replace values with your variables.</div>
+        <div class="url-text" id="shortcutUrl"></div>
+        <button class="copy-btn" onclick="copyShortcutUrl()">copy url</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Bottom Nav ── -->
+<nav class="bottom-nav">
+  <button class="nav-tab active" id="tab-metrics" onclick="switchTab('metrics')">
+    <svg viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+    metrics
+  </button>
+  <button class="nav-tab" id="tab-analysis" onclick="switchTab('analysis')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    analysis
+  </button>
+  <button class="nav-tab" id="tab-trends" onclick="switchTab('trends')">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    trends
+  </button>
+  <button class="nav-tab" id="tab-prompt" onclick="switchTab('prompt')">
+    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    prompt
+  </button>
+</nav>
+
+<!-- ── Settings Modal ── -->
+<div class="modal-overlay" id="settingsOverlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">gemini settings</span>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-row">
+        <label class="setting-label">api key <span class="setting-sublabel">memory only</span></label>
+        <input class="setting-input" id="geminiApiKey" type="password" placeholder="AIza..." autocomplete="off"/>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">model</label>
+        <select class="setting-select" id="geminiModel">
+          <option value="gemini-2.5-flash" selected>gemini-2.5-flash — recommended</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite — fastest</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash — reliable</option>
+          <option value="gemini-1.5-flash-002">gemini-1.5-flash-002 — stable</option>
+          <option value="gemini-1.5-pro-002">gemini-1.5-pro-002 — most capable</option>
+        </select>
+      </div>
+      <div class="setting-row-inline">
+        <div class="setting-row">
+          <label class="setting-label">max tokens</label>
+          <input class="setting-input" id="geminiMaxTokens" type="number" min="256" max="8192" step="256" value="2048"/>
+        </div>
+        <div class="setting-row">
+          <label class="setting-label">top-p</label>
+          <input class="setting-input" id="geminiTopP" type="number" min="0" max="1" step="0.05" value="0.95"/>
+        </div>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">temperature <span class="setting-sublabel" id="tempLabel">0.7 — balanced</span></label>
+        <div class="range-wrap">
+          <input type="range" id="geminiTemp" min="0" max="2" step="0.1" value="0.7" oninput="updateTemp(this.value)"/>
+          <span class="range-val" id="tempVal">0.7</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">safety</label>
+        <select class="setting-select" id="geminiSafety">
+          <option value="BLOCK_NONE">none</option>
+          <option value="BLOCK_ONLY_HIGH">low</option>
+          <option value="BLOCK_MEDIUM_AND_ABOVE" selected>medium (default)</option>
+          <option value="BLOCK_LOW_AND_ABOVE">high</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="connected-badge" id="geminiStatus">not tested</div>
+      <button class="btn" onclick="testGemini()">test</button>
+      <button class="btn btn-primary" onclick="saveSettings()">save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────
+const DAYS = 7;
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const FIELDS = ['vo2_max','steps','active_calories','resting_hr','avg_hr','hrv','blood_oxygen','respiratory_rate','workout_type','workout_duration','workout_calories','sleep_hours'];
+const today = new Date();
+
+function dayLabel(offset) {
+  const d = new Date(today); d.setDate(d.getDate() - offset);
+  return DAY_NAMES[d.getDay()];
+}
+
+let dayData = [
+  { vo2_max:41.8, steps:7200, active_calories:380, resting_hr:60, avg_hr:74, hrv:42, blood_oxygen:97.0, respiratory_rate:14.2, workout_type:'Walking',  workout_duration:40, workout_calories:280, sleep_hours:6.8 },
+  { vo2_max:41.9, steps:9100, active_calories:510, resting_hr:57, avg_hr:78, hrv:48, blood_oxygen:98.0, respiratory_rate:13.8, workout_type:'Running',  workout_duration:38, workout_calories:360, sleep_hours:7.5 },
+  { vo2_max:42.0, steps:5400, active_calories:290, resting_hr:62, avg_hr:70, hrv:38, blood_oxygen:97.0, respiratory_rate:14.5, workout_type:'Rest',     workout_duration:0,  workout_calories:0,   sleep_hours:8.1 },
+  { vo2_max:42.1, steps:8800, active_calories:490, resting_hr:58, avg_hr:80, hrv:44, blood_oxygen:98.0, respiratory_rate:14.0, workout_type:'Cycling',  workout_duration:55, workout_calories:420, sleep_hours:7.0 },
+  { vo2_max:42.2, steps:6300, active_calories:340, resting_hr:61, avg_hr:72, hrv:46, blood_oxygen:98.0, respiratory_rate:13.6, workout_type:'Strength', workout_duration:45, workout_calories:310, sleep_hours:7.3 },
+  { vo2_max:42.2, steps:10200,active_calories:560, resting_hr:56, avg_hr:82, hrv:50, blood_oxygen:99.0, respiratory_rate:13.4, workout_type:'HIIT',     workout_duration:30, workout_calories:410, sleep_hours:6.9 },
+  { vo2_max:42.3, steps:8200, active_calories:420, resting_hr:58, avg_hr:72, hrv:45, blood_oxygen:98.0, respiratory_rate:14.0, workout_type:'Running',  workout_duration:35, workout_calories:380, sleep_hours:7.2 },
+];
+
+let currentDay = 6;
+let geminiSettings = { apiKey:'', model:'gemini-2.5-flash', maxTokens:2048, temperature:0.7, topP:0.95, safety:'BLOCK_MEDIUM_AND_ABOVE' };
+
+// ── Navigation ────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'trends') { saveCurrentDay(); renderTrends(); }
+  if (name === 'prompt') { saveCurrentDay(); document.getElementById('promptEditor').value = buildDefaultPrompt(); updateShortcutUrl(); }
+  window.scrollTo(0, 0);
+}
+
+// ── Day nav ───────────────────────────────────────────────
+function renderDayDots() {
+  const c = document.getElementById('dayDots'); c.innerHTML = '';
+  for (let i = 0; i < DAYS; i++) {
+    const d = document.createElement('div');
+    d.className = 'day-dot filled' + (i === currentDay ? ' active' : '');
+    d.onclick = () => { saveCurrentDay(); currentDay = i; loadCurrentDay(); };
+    c.appendChild(d);
+  }
+}
+
+function loadCurrentDay() {
+  const data = dayData[currentDay];
+  FIELDS.forEach(f => { const el = document.getElementById('f_'+f); if (el) el.value = data[f] ?? ''; });
+  const offset = DAYS - 1 - currentDay;
+  document.getElementById('dayNavLabel').textContent = offset === 0 ? 'Day 7 — Today' : `Day ${currentDay+1} — ${dayLabel(offset)}`;
+  document.getElementById('dayNavSub').textContent = offset === 0 ? 'editing most recent entry' : `${offset} day${offset>1?'s':''} ago`;
+  document.getElementById('prevDay').disabled = currentDay === 0;
+  document.getElementById('nextDay').disabled = currentDay === DAYS - 1;
+  renderDayDots();
+}
+
+function saveCurrentDay() {
+  FIELDS.forEach(f => {
+    const el = document.getElementById('f_'+f); if (!el) return;
+    dayData[currentDay][f] = f === 'workout_type' ? el.value : (el.value !== '' ? parseFloat(el.value) : null);
+  });
+}
+
+function goDay(dir) {
+  saveCurrentDay();
+  currentDay = Math.max(0, Math.min(DAYS-1, currentDay+dir));
+  loadCurrentDay();
+}
+
+// ── Trends ────────────────────────────────────────────────
+const TREND_METRICS = [
+  { key:'steps',           label:'Steps',           unit:'steps',    color:'#4fffb0' },
+  { key:'resting_hr',      label:'Resting HR',      unit:'bpm',      color:'#ff6b6b' },
+  { key:'hrv',             label:'HRV',             unit:'ms',       color:'#64b5f6' },
+  { key:'sleep_hours',     label:'Sleep',           unit:'hrs',      color:'#b57fff' },
+  { key:'vo2_max',         label:'VO2 Max',         unit:'ml/kg',    color:'#4fffb0' },
+  { key:'blood_oxygen',    label:'SpO2',            unit:'%',        color:'#64b5f6' },
+  { key:'active_calories', label:'Calories',        unit:'kcal',     color:'#ffb347' },
+  { key:'respiratory_rate',label:'Resp Rate',       unit:'br/min',   color:'#ff6b6b' },
+];
+
+function renderTrends() {
+  const grid = document.getElementById('trendsGrid'); grid.innerHTML = '';
+  TREND_METRICS.forEach(m => {
+    const vals = dayData.map(d => parseFloat(d[m.key]) || 0);
+    const latest = vals[vals.length-1], prev = vals[vals.length-2];
+    const delta = latest - prev;
+    const isInt = ['steps','active_calories','workout_duration','workout_calories'].includes(m.key);
+    const fmt = v => isInt ? Math.round(v).toLocaleString() : v.toFixed(1);
+    const dStr = (delta>=0?'+':'') + (isInt ? Math.round(delta) : delta.toFixed(1));
+    const dClass = Math.abs(delta)<0.05?'flat':delta>0?'up':'down';
+    const labels = dayData.map((_,i) => dayLabel(DAYS-1-i).slice(0,1));
+    const card = document.createElement('div');
+    card.className = 'trend-card';
+    card.innerHTML = `
+      <div class="trend-name">${m.label}</div>
+      <div class="trend-row">
+        <div><span class="trend-val">${fmt(latest)}</span><span class="trend-unit">${m.unit}</span></div>
+        <span class="trend-delta ${dClass}">${dStr}</span>
+      </div>
+      <svg class="sparkline" viewBox="0 0 120 40" preserveAspectRatio="none">${sparkline(vals,m.color)}</svg>
+      <div class="day-labels">${labels.map(l=>`<span class="day-lbl">${l}</span>`).join('')}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function sparkline(vals, color) {
+  const w=120,h=36,pad=2;
+  const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+  const pts = vals.map((v,i) => [(pad+(i/(vals.length-1))*(w-pad*2)).toFixed(1),(h-pad-((v-min)/range)*(h-pad*2)).toFixed(1)]);
+  const area=`M${pts[0].join(',')} ${pts.slice(1).map(p=>`L${p.join(',')}`).join(' ')} L${(w-pad).toFixed(1)},${h} L${pad},${h} Z`;
+  const line=`M${pts[0].join(',')} ${pts.slice(1).map(p=>`L${p.join(',')}`).join(' ')}`;
+  const gid=`g${color.replace('#','')}`;
+  return `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${color}" stop-opacity="0.02"/></linearGradient></defs>
+  <path d="${area}" fill="url(#${gid})"/>
+  <path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="2.5" fill="${color}"/>`;
+}
+
+// ── Prompt ────────────────────────────────────────────────
+function buildDefaultPrompt() {
+  saveCurrentDay();
+  const lines = ['You are a helpful health analyst. Below is 7 days of anonymous health data (Day 1 = oldest, Day 7 = today). Analyze trends and provide actionable insights.\n'];
+  dayData.forEach((d,i) => {
+    const offset=DAYS-1-i, tag=offset===0?'today':`${offset}d ago`;
+    lines.push(`Day ${i+1} (${dayLabel(offset)}, ${tag}):`);
+    lines.push(`  Steps: ${d.steps??'N/A'} | Calories: ${d.active_calories??'N/A'} kcal | VO2 Max: ${d.vo2_max??'N/A'}`);
+    lines.push(`  HR: ${d.resting_hr??'N/A'} resting / ${d.avg_hr??'N/A'} avg bpm | HRV: ${d.hrv??'N/A'} ms`);
+    lines.push(`  SpO2: ${d.blood_oxygen??'N/A'}% | Resp: ${d.respiratory_rate??'N/A'} br/min`);
+    lines.push(`  Workout: ${d.workout_type??'N/A'} ${d.workout_duration?d.workout_duration+'min':''} ${d.workout_calories?d.workout_calories+'kcal':''}`);
+    lines.push(`  Sleep: ${d.sleep_hours??'N/A'} hrs\n`);
+  });
+  lines.push('Provide:\n1) Weekly summary\n2) Cardio fitness trend\n3) Heart health — HR and HRV\n4) Respiratory health\n5) Recovery quality\n6) Best and worst days\n7) Two actionable recommendations for next week');
+  return lines.join('\n');
+}
+
+function resetPrompt() {
+  document.getElementById('promptEditor').value = buildDefaultPrompt();
+  showToast('Prompt reset');
+}
+
+function updateShortcutUrl() {
+  const base = window.location.origin + '/analyze';
+  const d = dayData[6]; // today
+  const params = new URLSearchParams({
+    steps: d.steps??'', resting_hr: d.resting_hr??'', avg_hr: d.avg_hr??'',
+    hrv: d.hrv??'', blood_oxygen: d.blood_oxygen??'', respiratory_rate: d.respiratory_rate??'',
+    vo2_max: d.vo2_max??'', active_calories: d.active_calories??'',
+    workout_type: d.workout_type??'', workout_duration: d.workout_duration??'',
+    workout_calories: d.workout_calories??'', sleep_hours: d.sleep_hours??''
+  });
+  document.getElementById('shortcutUrl').textContent = `${base}?${params.toString()}`;
+}
+
+function copyShortcutUrl() {
+  const url = document.getElementById('shortcutUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => showToast('URL copied!')).catch(() => showToast('Copy failed', true));
+}
+
+// ── Analyze ───────────────────────────────────────────────
+async function analyze() {
+  saveCurrentDay();
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true; btn.textContent = '⟳ analyzing...';
+
+  const empty = document.getElementById('responseEmpty');
+  const text = document.getElementById('responseText');
+  const badge = document.getElementById('responseBadge');
+  empty.style.display = 'flex';
+  empty.innerHTML = `<div class="thinking"><span>gemini is analyzing your week</span><div class="thinking-dots"><span></span><span></span><span></span></div></div>`;
+  text.style.display = 'none';
+  badge.innerHTML = '';
+
+  // Switch to analysis tab
+  switchTab('analysis');
+
+  const prompt = document.getElementById('promptEditor').value || buildDefaultPrompt();
+
+  try {
+    const res = await fetch('/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        days: dayData,
+        _custom_prompt: prompt,
+        _gemini: { api_key: geminiSettings.apiKey, model: geminiSettings.model, max_tokens: geminiSettings.maxTokens, temperature: geminiSettings.temperature, top_p: geminiSettings.topP, safety: geminiSettings.safety }
+      })
+    });
+    if (!res.ok) throw new Error(`Server error: ${res.status}`);
+    const data = await res.json();
+    empty.style.display = 'none';
+    text.style.display = 'block';
+    text.innerHTML = formatResponse(data.analysis);
+    badge.innerHTML = `<span style="font-size:10px;color:var(--accent);">✓ 7-day analysis</span> <span style="font-size:10px;color:var(--text3);margin-left:6px;">${geminiSettings.model}</span>`;
+    showToast('Analysis complete');
+  } catch (err) {
+    empty.innerHTML = `<div style="color:var(--red);font-size:12px;text-align:center;">⚠ ${err.message}</div>`;
+    showToast(err.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '→ analyze 7 days with gemini';
+  }
+}
+
+function formatResponse(text) {
+  return text.replace(/^(\d+[\)\.][^\n]*)/gm, '<span class="section-head">$1</span>');
+}
+
+// ── Settings ──────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('geminiApiKey').value = geminiSettings.apiKey;
+  document.getElementById('geminiModel').value = geminiSettings.model;
+  document.getElementById('geminiMaxTokens').value = geminiSettings.maxTokens;
+  document.getElementById('geminiTemp').value = geminiSettings.temperature;
+  document.getElementById('geminiTopP').value = geminiSettings.topP;
+  document.getElementById('geminiSafety').value = geminiSettings.safety;
+  document.getElementById('tempVal').textContent = geminiSettings.temperature;
+  updateTempLabel(geminiSettings.temperature);
+  document.getElementById('settingsOverlay').classList.add('open');
+}
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function overlayClick(e) { if (e.target===document.getElementById('settingsOverlay')) closeSettings(); }
+function saveSettings() {
+  geminiSettings = { apiKey:document.getElementById('geminiApiKey').value.trim(), model:document.getElementById('geminiModel').value, maxTokens:parseInt(document.getElementById('geminiMaxTokens').value)||2048, temperature:parseFloat(document.getElementById('geminiTemp').value), topP:parseFloat(document.getElementById('geminiTopP').value), safety:document.getElementById('geminiSafety').value };
+  closeSettings(); showToast('✓ Settings saved');
+  const dot = document.getElementById('statusDot');
+  dot.style.background = geminiSettings.apiKey ? 'var(--accent)' : 'var(--amber)';
+  dot.style.boxShadow = geminiSettings.apiKey ? '0 0 8px var(--accent)' : '0 0 8px var(--amber)';
+}
+function updateTemp(val) { document.getElementById('tempVal').textContent=parseFloat(val).toFixed(1); updateTempLabel(val); }
+function updateTempLabel(val) {
+  const v=parseFloat(val), l=v<=0.3?'precise':v<=0.7?'balanced':v<=1.2?'creative':'very random';
+  document.getElementById('tempLabel').textContent=`${v.toFixed(1)} — ${l}`;
+}
+async function testGemini() {
+  const key=document.getElementById('geminiApiKey').value.trim(), model=document.getElementById('geminiModel').value;
+  const status=document.getElementById('geminiStatus');
+  if (!key) { status.textContent='✗ no api key'; status.className='connected-badge'; return; }
+  status.textContent='testing...'; status.className='connected-badge';
+  try {
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:'Say ok.'}]}]})});
+    if (res.ok) { status.textContent='connected'; status.className='connected-badge ok'; }
+    else { const e=await res.json(); status.textContent=`✗ ${e.error?.message||'failed'}`; status.className='connected-badge'; }
+  } catch { status.textContent='✗ network error'; status.className='connected-badge'; }
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function showToast(msg, isError=false) {
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.className='toast show'+(isError?' error':'');
+  setTimeout(()=>{ t.className='toast'; },3000);
+}
+
+// ── Init ──────────────────────────────────────────────────
+loadCurrentDay();
+document.getElementById('promptEditor').value = buildDefaultPrompt();
+updateShortcutUrl();
+</script>
+</body>
+</html>
